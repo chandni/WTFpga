@@ -1,42 +1,52 @@
 `timescale 1ns / 1ps
+
+module clkdiv(
+    input clk,
+    output clkout
+    );
+
+	reg [15:0] counter;
+	assign clkout = counter[15];
+
+	always @(posedge clk) begin
+		counter <= counter+1;
+	end
+endmodule
+
+
+module seven_seg_mux(
+	input clk,
+	input [6:0] count_value,
+	output reg [6:0] segout
+	);
+	
+	assign segout = count_value;
+endmodule
+
+
+
 //define our module and it's inputs/outputs
 module top(
 	input CLK,
 	input BTN1,
-	input BTN2,
-	input BTN3,
-	input BTN_N,
-	input [7:0] sw,
-	output [4:0] led,
 	output [6:0] seg,
 	output ca
     );
-
-//define wires and registers here
-	wire [7:0] disp0,disp1;
-	wire displayClock;
-	wire wire1, wire2;
 	
-//parallel assignments can go here
-	assign disp0 = 0;
-	assign disp1 = 0;
-	assign led[3:1]=5'b0;
-	assign led[0]=wire1;
-	assign led[4]=wire2;
-	assign wire1=BTN1;
-	assign wire2=BTN3;
+    assign ca = 0;
+    
+	//define wires and registers here
+	wire displayClock;
+	wire btn1_debounced_wire;
+	reg[6:0] intermed;
+	 	
 
-//always @ blocks can go here
-//	always @(sensitivity list) begin
-//		commmands-to-run-when-triggered;
-//	end
+	//always @ blocks can go here
+	always @(negedge BTN1) begin
+		intermed = intermed + 1;
+	end
 
-//instantiate modules here
-	nibble_to_seven_seg nibble0(
-		.nibblein(),
-		.segout()
-	);	 
-	 
+
 	clkdiv displayClockGen(
 		.clk(CLK),
 		.clkout(displayClock)
@@ -44,10 +54,8 @@ module top(
 
 	seven_seg_mux display(
 		.clk(displayClock),
-		.disp0(disp0),
-		.disp1(disp1),
-		.segout(seg),
-		.disp_sel(ca)
+		.count_value(intermed),
+		.segout(seg)
 	);
 
 endmodule
